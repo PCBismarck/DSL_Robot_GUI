@@ -1,0 +1,28 @@
+<UI version="4.0" >
+ <class>DSL_Robot_GUIClass</class>
+ <widget class="QMainWindow" name="DSL_Robot_GUIClass" >
+  <property name="objectName" >
+   <string notr="true">DSL_Robot_GUIClass</string>
+  </property>
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>600</width>
+    <height>400</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>DSL_Robot_GUI</string>
+  </property>  <widget class="QMenuBar" name="menuBar" />
+  <widget class="QToolBar" name="mainToolBar" />
+  <widget class="QWidget" name="centralWidget" />
+  <widget class="QStatusBar" name="statusBar" />
+ </widget>
+ <layoutDefault spacing="6" margin="11" />
+ <pixmapfunction></pixmapfunction>
+ <resources>
+   <include location="DSL_Robot_GUI.qrc"/>
+ </resources>
+ <connections/>
+</UI>
