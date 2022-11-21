@@ -1,7 +1,6 @@
 #include "Interpreter.h"
+#include "Action.h"
 
-#define VAR 0
-#define WORD 1
 
 bool Interpreter::AnalysisScript(QString filePath)
 {
@@ -12,9 +11,6 @@ bool Interpreter::AnalysisScript(QString filePath)
 	QTextStream qStream(&file);
 	
 	//打开文件
-	//首先读取变量
-
-	//读取Step
 	QString key;
 	QStringList buffer;
 	//扫描整个脚本文件
@@ -66,6 +62,7 @@ bool Interpreter::AnalysisScript(QString filePath)
 
 			//读取并生成Step中的内容
 			GenerateStep(new_step, qStream);
+			new_step.var = &var;
 			stepList.push_back(new_step);
 		}
 		buffer.clear();
@@ -74,7 +71,7 @@ bool Interpreter::AnalysisScript(QString filePath)
 	//构造StepPos哈希表
 	for (int pos = 0; pos < stepList.size(); ++pos)
 		stepPos[stepList[pos].name] = pos;
-
+	//qDebug() << stepPos << var.noteTable;
 	return true;
 }
 
@@ -85,12 +82,35 @@ QVector<Step>& Interpreter::StepList()
 
 int Interpreter::Start()
 {
-	int cur_step = stepPos[entry];
-	for (auto & iter : stepList)
+	Step* cur_step;
+	int cur_step_pos = stepPos[entry];
+	cur_step = &stepList[cur_step_pos];
+	cur_step->var = &var;
+	while (true)
 	{
-		qDebug() << "Step: " << iter.name;
-		iter.Run();
+		qDebug() << cur_step->name << ":";
+		int state = stepList[cur_step_pos].Run();
+		switch (state)
+		{
+		case EXIT:
+		case EROR:
+			return state;
+		case JUMP:
+			cur_step_pos = stepPos[cur_step->jumpTo];
+			cur_step = &stepList[cur_step_pos];
+			break;
+		default:
+			break;
+		}
 	}
+
+	//for (auto & iter : stepList)
+	//{
+	//	qDebug() << "Step: " << iter.name;
+	//	iter.var = &var;
+	//	iter.Run();
+	//}
+
 	return 1;
 }
 
@@ -100,27 +120,59 @@ bool Interpreter::GenerateStep(Step& step_to_create, QTextStream& qstream)
 	QString key;
 	while (!qstream.atEnd())
 	{
-		buffer = qstream.readLine().split(' ', Qt::SkipEmptyParts);
-		if (buffer.size())
-		{
-			key = buffer.first().trimmed();
-			buffer.removeFirst();
-		}
+		QRegularExpression regex("[\t ]");
+		//读取首关键字
+		qstream >> key;
 		//进入Action处理流程
 		if (key == "Speak")
+		{
+			buffer = qstream.readLine().split('+', Qt::SkipEmptyParts);
 			SpeakProcess(step_to_create, buffer);
+		}
 		else if (key == "Branch")
+		{
+			buffer = qstream.readLine().split(regex, Qt::SkipEmptyParts);
 			BranchProcess(step_to_create, buffer);
+		}
 		else if (key == "Listen")
+		{
+			buffer = qstream.readLine().split(regex, Qt::SkipEmptyParts);
 			ListenProcess(step_to_create, buffer);
+		}
 		else if (key == "Silence")
+		{
+			buffer = qstream.readLine().split(regex, Qt::SkipEmptyParts);
 			SilenceProcess(step_to_create, buffer);
+		}
 		else if (key == "Modify")
+		{
+			QRegularExpression exp;
+			exp.setPattern("[/+/-/*//]");
+			QString express = qstream.readLine();
+			int cur_pos = 0 , pre_pos = 0;
+			cur_pos = express.indexOf(":");
+			buffer << express.left(cur_pos).trimmed();
+			pre_pos = cur_pos + 1;
+			cur_pos = express.indexOf(exp, pre_pos);
+			while (cur_pos >= 0)
+			{
+				buffer << express.mid(pre_pos, cur_pos - pre_pos).trimmed() << express[cur_pos];
+				pre_pos = cur_pos + 1;
+				cur_pos = express.indexOf(exp, pre_pos);
+			}
+			buffer << express.last(express.size() - pre_pos);
 			ModifyProcess(step_to_create, buffer);
+		}
 		else if (key == "Exit")
+		{
+			buffer = qstream.readLine().split(regex, Qt::SkipEmptyParts);
 			ExitProcess(step_to_create, buffer);
+		}
 		else if (key == "Default")
+		{
+			buffer = qstream.readLine().split(regex, Qt::SkipEmptyParts);
 			DefaultProcess(step_to_create, buffer);
+		}
 		else if (key == "End")
 			return true;
 		else//错误处理
@@ -139,7 +191,7 @@ bool Interpreter::SpeakProcess(Step& step_to_modify, QStringList& buffer)
 	QString word;
 	while (buffer.size())
 	{
-		word = buffer.first().trimmed();
+		word = buffer.first().trimmed().replace("\"", "");
 		buffer.removeFirst();
 		new_speak->words.push_back(word);
 	}
@@ -156,10 +208,11 @@ bool Interpreter::BranchProcess(Step& step_to_modify, QStringList& buffer)
 		token = buffer.first().trimmed();
 		buffer.removeFirst();
 		int delim_pos = token.indexOf(':');
-		QString key = token.left(delim_pos);
-		QString step_name = token.mid(delim_pos + 1, -1);
+		QString key = token.left(delim_pos).trimmed().replace("\"", "");
+		QString step_name = token.mid(delim_pos + 1, -1).trimmed().replace("\"", "");
 		new_branch->jump[key] = step_name;
 	}
+	qDebug() << new_branch->jump;
 	step_to_modify.behavior.push_back(new_branch);
 	return true;
 }
@@ -170,8 +223,8 @@ bool Interpreter::ListenProcess(Step& step_to_modify, QStringList& buffer)
 	QString token = buffer.first().trimmed();
 	buffer.removeFirst();
 	int delim_pos = token.indexOf(',');
-	QString start = token.left(delim_pos);
-	QString end = token.mid(delim_pos + 1, -1);
+	QString start = token.left(delim_pos).trimmed();
+	QString end = token.mid(delim_pos + 1, -1).trimmed();
 	new_listen->start_time = start.toInt();
 	new_listen->end_time = end.toInt();
 	step_to_modify.behavior.push_back(new_listen);
@@ -197,8 +250,18 @@ bool Interpreter::ExitProcess(Step& step_to_modify, QStringList& buffer)
 
 bool Interpreter::ModifyProcess(Step& step_to_modify, QStringList& buffer)
 {
-	//等待补全
 	Modify* new_modify = new Modify;
+	new_modify->toModify = buffer.first();
+	buffer.removeFirst();
+	int is_val = 1;
+	for (auto & token : buffer)
+	{
+		if (is_val)
+			new_modify->varQue.enqueue(token);
+		else
+			new_modify->opQue.enqueue(token);
+		is_val = 1 - is_val;
+	}
 	step_to_modify.behavior.push_back(new_modify);
 	return true;
 }
@@ -213,67 +276,6 @@ bool Interpreter::DefaultProcess(Step& step_to_modify, QStringList& buffer)
 	return true;
 }
 
-int Speak::Execute()
-{
-	//for (auto & iter : words)
-	//{
-	//	qDebug() << iter << " ";
-	//}
-	qDebug() << "Speak Execute!" ;
-	return -1;
-}
 
-int Branch::Execute()
-{
-	qDebug() << "Branch Execute!";
-	return -1;
-}
 
-int Listen::Execute()
-{
-	qDebug() << "Listen Execute!";
-	return -1;
-}
 
-int Exit::Execute()
-{
-	qDebug() << "Exit Execute!";
-	return -1;
-}
-
-int Silence::Execute()
-{
-	qDebug() << "Silence Execute!";
-	return -1;
-}
-
-int Default::Execute()
-{
-	qDebug() << "Default Execute!";
-	return -1;
-}
-
-int Modify::Execute()
-{
-	qDebug() << "Modify Execute!";
-	return -1;
-}
-
-int VarList::SIZE(int type)
-{
-	if (type == VAR)
-		return val.size();
-	else if(type == WORD)
-		return word.size();
-	return -1;
-}
-
-int Step::Run()
-{
-	int cur_action = 0;
-	for (auto &iter : behavior)
-	{
-		iter->Execute();
-	}
-	return -1;
-}

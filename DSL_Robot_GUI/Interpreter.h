@@ -1,101 +1,16 @@
 #ifndef INTERPRETER_H
 #define INTERPRETER_H
 
-#include <iostream>
 #include <QVector>
 #include <QString>
 #include <utility>
 #include <QHash>
-#include <fstream>
-#include <sstream>
 #include <QDebug>
 #include <QFile>
+#include <QStack>
+#include <QRegularExpression>
+#include "Action.h"
 
-#define BUF_SIZE 1024
-
-
-class Action
-{
-public:
-	virtual int Execute() = 0;
-};
-
-class Speak :public Action
-{
-public:
-	int Execute();
-public:
-	QVector<QString> words;
-};
-
-class Branch : public Action
-{
-public:
-	int Execute();
-public:
-	QHash<QString, QString> jump;
-};
-
-class Listen : public Action
-{
-	//设置timer
-public:
-	int Execute();
-
-public:
-	int start_time;
-	int end_time;
-	QString Heard;
-};
-
-class Exit : public Action
-{
-public:
-	int Execute();
-};
-
-class Silence : public Action
-{
-public:
-	int Execute();
-public:
-	QString jumpTo;
-};
-
-class Default : public Action
-{
-public:
-	int Execute();
-public:
-	QString jumpTo;
-};
-
-class Modify : public Action
-{
-public:
-	int Execute();
-	QString toModify;
-};
-
-class Step
-{
-public:
-	int Run();
-public:
-	QString name;
-	QVector<Action*> behavior;	
-};
-
-class VarList
-{
-public:
-	int SIZE(int type);
-public:
-	//pair<Type, Pos>
-	QHash<QString, QPair<int, int>> noteTable;
-	QVector<int> val;
-	QVector<QString> word;
-};
 
 class Interpreter
 {

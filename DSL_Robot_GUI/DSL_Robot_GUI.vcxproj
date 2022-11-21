@@ -88,12 +88,14 @@
     <QtRcc Include="DSL_Robot_GUI.qrc" />
     <QtUic Include="DSL_Robot_GUI.ui" />
     <QtMoc Include="DSL_Robot_GUI.h" />
+    <ClCompile Include="Action.cpp" />
     <ClCompile Include="DSL_Robot.cpp" />
     <ClCompile Include="DSL_Robot_GUI.cpp" />
     <ClCompile Include="Interpreter.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Action.h" />
     <ClInclude Include="DSL_Robot.h" />
     <ClInclude Include="Interpreter.h" />
   </ItemGroup>
