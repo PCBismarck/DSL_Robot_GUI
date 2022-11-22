@@ -1,7 +1,9 @@
 #pragma once
 
 #include <QtWidgets/QMainWindow>
+#include <QDateTime>
 #include "ui_DSL_Robot_GUI.h"
+
 
 class DSL_Robot_GUI : public QMainWindow
 {
@@ -13,4 +15,9 @@ public:
 
 private:
     Ui::DSL_Robot_GUIClass ui;
+
+
+private slots:
+    void on_sendButton_clicked();
 };
+

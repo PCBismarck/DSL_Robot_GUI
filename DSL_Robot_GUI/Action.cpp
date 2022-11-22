@@ -33,6 +33,8 @@ int Branch::Execute()
 {
 	OBuffer.clear();
 	QStringList keys = jump.keys();
+	if (IBuffer.isEmpty())
+		return EROR;
 	for (auto& token : IBuffer)
 	{
 		for (auto & key : keys)
@@ -52,11 +54,15 @@ int Listen::Execute()
 {
 	OBuffer.clear();
 	QString heard;
+	
 	for (auto& sentence : IBuffer)
 		heard.append(sentence);
 	QPair<int, int> varInfo = var->noteTable["Heard"];
 	int type = varInfo.first;
 	int pos = varInfo.second;
+
+	//heard没有根据类型进行细分
+
 	if (type == NULL && pos == NULL)//heard没有加入变量表
 	{
 		var->noteTable["Heard"] = QPair<int, int>(WORD, var->word.size());
@@ -67,7 +73,7 @@ int Listen::Execute()
 		var->word[pos] = heard;
 	}
 	qDebug() << "Listen Execute!";
-	return NORM;
+	return HEAR;
 }
 
 int Exit::Execute()
@@ -176,7 +182,7 @@ int Step::Run()
 {
 	for (auto& iter : behavior)
 	{
-		iter->IBuffer << "投诉";
+		iter->IBuffer = SIBuffer;
 		iter->var = var;
 		int state = iter->Execute();
 		switch (state)
@@ -185,8 +191,11 @@ int Step::Run()
 		case EROR:
 			return state;
 		case JUMP:
-			jumpTo = iter->OBuffer.first();
+			SOBuffer << iter->OBuffer.first();
 			return JUMP;
+		case HEAR:
+			iter->IBuffer.clear();
+			break;
 		default:
 			break;
 		}

@@ -83,6 +83,7 @@ QVector<Step>& Interpreter::StepList()
 int Interpreter::Start()
 {
 	Step* cur_step;
+	QString next_step_name;
 	int cur_step_pos = stepPos[entry];
 	cur_step = &stepList[cur_step_pos];
 	cur_step->var = &var;
@@ -96,21 +97,18 @@ int Interpreter::Start()
 		case EROR:
 			return state;
 		case JUMP:
-			cur_step_pos = stepPos[cur_step->jumpTo];
-			cur_step = &stepList[cur_step_pos];
-			break;
+			next_step_name = cur_step->SOBuffer.first();
+			if (stepPos.keys().contains(next_step_name))//如果下一步索引存在
+			{
+				cur_step_pos = stepPos[next_step_name];
+				cur_step = &stepList[cur_step_pos];
+				break;
+			}
+			return EROR;
 		default:
 			break;
 		}
 	}
-
-	//for (auto & iter : stepList)
-	//{
-	//	qDebug() << "Step: " << iter.name;
-	//	iter.var = &var;
-	//	iter.Run();
-	//}
-
 	return 1;
 }
 

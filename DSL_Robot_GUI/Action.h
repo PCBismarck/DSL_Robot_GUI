@@ -21,6 +21,7 @@
 #define EROR -1
 #define NORM 1
 #define JUMP 2
+#define HEAR 5
 
 
 class VarList
@@ -113,7 +114,8 @@ public:
 	QString name;
 	QVector<Action*> behavior;
 	VarList* var;
-	QString jumpTo;
+	QStringList SIBuffer;
+	QStringList SOBuffer;
 };
 
 #endif

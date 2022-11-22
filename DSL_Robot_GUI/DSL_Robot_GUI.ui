@@ -34,7 +34,7 @@
      </rect>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton">
+   <widget class="QPushButton" name="sendButton">
     <property name="geometry">
      <rect>
       <x>510</x>
@@ -43,8 +43,13 @@
       <height>24</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <pointsize>11</pointsize>
+     </font>
+    </property>
     <property name="text">
-     <string>PushButton</string>
+     <string>发送</string>
     </property>
    </widget>
   </widget>
