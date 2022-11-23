@@ -9,6 +9,7 @@
 #include <QFile>
 #include <QStack>
 #include <QRegularExpression>
+#include <QTcpSocket>
 #include "Action.h"
 
 
@@ -17,7 +18,8 @@ class Interpreter
 public:
 	bool AnalysisScript(QString filePath);
 	QVector<Step>& StepList();
-	int Start();
+	//int Start(QStringList& IBuffer, 
+	//	QTcpSocket* client);
 
 private:
 	bool GenerateStep(Step& step_to_create, QTextStream& qstream);
@@ -30,14 +32,14 @@ private:
 	bool DefaultProcess(Step& step_to_modify, QStringList& buffer);
 
 
-private:
+public:
 	VarList var;
 	QVector<Step> stepList;
 	QHash<QString, int> stepPos;
 	QString entry;
 };
 
-
+//extern Interpreter SynTree;
 
 
 #endif // !INTERPRETER_H

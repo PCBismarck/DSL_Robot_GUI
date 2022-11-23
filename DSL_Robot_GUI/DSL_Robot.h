@@ -2,10 +2,18 @@
 // 或项目特定的包含文件。
 
 #pragma once
+#include <QtConcurrent/QtConcurrent>
+#include "Action.h"
+#include "Interpreter.h"
 
-#include <iostream>
 
-//#define _TEST_
+class DSL_Robot : public QObject
+{
+public:
+	void StartWorking(qintptr socketDescriptor, Interpreter* SynTree);
 
+public:
+	VarList MyVal;
+};
 
 // TODO: 在此处引用程序需要的其他标头。
