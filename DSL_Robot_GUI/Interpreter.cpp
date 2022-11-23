@@ -39,8 +39,8 @@ bool Interpreter::AnalysisScript(QString filePath)
 			}
 			else if (type == "Word")
 			{
-				var.noteTable[name] = QPair<int, int>(VAR, var.SIZE(WORD));
-				QString value = buffer.first().trimmed();
+				var.noteTable[name] = QPair<int, int>(WORD, var.SIZE(WORD));
+				QString value = buffer.first().trimmed().remove("\"");
 				buffer.removeFirst();
 				var.word.push_back(value);
 			}
@@ -62,7 +62,6 @@ bool Interpreter::AnalysisScript(QString filePath)
 
 			//读取并生成Step中的内容
 			GenerateStep(new_step, qStream);
-			new_step.var = &var;
 			stepList.push_back(new_step);
 		}
 		buffer.clear();
@@ -78,38 +77,6 @@ bool Interpreter::AnalysisScript(QString filePath)
 QVector<Step>& Interpreter::StepList()
 {
 	return stepList;
-}
-
-int Interpreter::Start()
-{
-	Step* cur_step;
-	QString next_step_name;
-	int cur_step_pos = stepPos[entry];
-	cur_step = &stepList[cur_step_pos];
-	cur_step->var = &var;
-	while (true)
-	{
-		qDebug() << cur_step->name << ":";
-		int state = stepList[cur_step_pos].Run();
-		switch (state)
-		{
-		case EXIT:
-		case EROR:
-			return state;
-		case JUMP:
-			next_step_name = cur_step->SOBuffer.first();
-			if (stepPos.keys().contains(next_step_name))//如果下一步索引存在
-			{
-				cur_step_pos = stepPos[next_step_name];
-				cur_step = &stepList[cur_step_pos];
-				break;
-			}
-			return EROR;
-		default:
-			break;
-		}
-	}
-	return 1;
 }
 
 bool Interpreter::GenerateStep(Step& step_to_create, QTextStream& qstream)
@@ -218,13 +185,21 @@ bool Interpreter::BranchProcess(Step& step_to_modify, QStringList& buffer)
 bool Interpreter::ListenProcess(Step& step_to_modify, QStringList& buffer)
 {
 	Listen *new_listen = new Listen;
+	QString type = buffer.first().trimmed();
+	buffer.removeFirst();
+	if (type == "Var")
+		new_listen->heardType = VAR;
+	else if (type == "Word")
+		new_listen->heardType = WORD;
+	else
+		return false;
 	QString token = buffer.first().trimmed();
 	buffer.removeFirst();
 	int delim_pos = token.indexOf(',');
 	QString start = token.left(delim_pos).trimmed();
 	QString end = token.mid(delim_pos + 1, -1).trimmed();
-	new_listen->start_time = start.toInt();
-	new_listen->end_time = end.toInt();
+	new_listen->startTime = start.toInt();
+	new_listen->endTime = end.toInt();
 	step_to_modify.behavior.push_back(new_listen);
 	return true;
 }

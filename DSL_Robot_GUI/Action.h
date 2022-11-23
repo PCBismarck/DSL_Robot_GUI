@@ -12,6 +12,8 @@
 #include <QStack>
 #include <QRegularExpression>
 #include <QQueue>
+#include <QTcpSocket>
+#include <QThread>
 //#include "Interpreter.h"
 
 #define VAR 0
@@ -40,17 +42,15 @@ class Action
 public:
 	//返回值表示不同的状态
 	//
-	virtual int Execute() = 0;
-public:
-	QStringList IBuffer;
-	QStringList OBuffer;
-	VarList* var;
+	virtual int Execute(QString& OBuffer, 
+		VarList& var, 
+		QTcpSocket* client) = 0;
 };
 
 class Speak :public Action
 {
 public:
-	int Execute();
+	int Execute(QString &OBuffer, VarList& var, QTcpSocket* client);
 public:
 	QVector<QString> words;
 };
@@ -58,7 +58,7 @@ public:
 class Branch : public Action
 {
 public:
-	int Execute();
+	int Execute(QString &OBuffer, VarList& var, QTcpSocket* client);
 public:
 	QHash<QString, QString> jump;
 };
@@ -67,23 +67,23 @@ class Listen : public Action
 {
 	//设置timer
 public:
-	int Execute();
+	int Execute(QString &OBuffer, VarList& var, QTcpSocket* client);
 public:
-	int start_time;
-	int end_time;
-	QString Heard;
+	int startTime;
+	int endTime;
+	int heardType;
 };
 
 class Exit : public Action
 {
 public:
-	int Execute();
+	int Execute(QString &OBuffer, VarList& var, QTcpSocket* client);
 };
 
 class Silence : public Action
 {
 public:
-	int Execute();
+	int Execute(QString &OBuffer, VarList& var, QTcpSocket* client);
 public:
 	QString jumpTo;
 };
@@ -91,7 +91,7 @@ public:
 class Default : public Action
 {
 public:
-	int Execute();
+	int Execute(QString &OBuffer, VarList& var, QTcpSocket* client);
 public:
 	QString jumpTo;
 };
@@ -99,7 +99,7 @@ public:
 class Modify : public Action
 {
 public:
-	int Execute();
+	int Execute(QString &OBuffer, VarList& var, QTcpSocket* client);
 public:
 	QString toModify;
 	QQueue<QString> varQue;
@@ -109,13 +109,11 @@ public:
 class Step
 {
 public:
-	int Run();
+	int Run(QString& SOBuffer, VarList& var, QTcpSocket* client);
 public:
 	QString name;
 	QVector<Action*> behavior;
-	VarList* var;
-	QStringList SIBuffer;
-	QStringList SOBuffer;
+
 };
 
 #endif
