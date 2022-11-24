@@ -11,7 +11,8 @@ class DSL_Robot : public QObject
 {
 public:
 	void StartWorking(qintptr socketDescriptor, Interpreter* SynTree);
-
+	void HandleDisconnect();
+	void copy_varList(VarList* to_copy);
 public:
 	VarList MyVal;
 };

@@ -6,41 +6,36 @@
 #include <QTcpSocket>
 #include <QTcpServer>
 #include <QHostAddress>
+#include <QMessageBox>
 #include "Action.h"
 
 using namespace std;
 
-//#define _TEST_INTER_
-#define _TEST_NET_
+//#define _TEST_
+//#define _TEST_NET_
 
 int main(int argc, char *argv[])
 {
 
-#ifdef _TEST_INTER_
-	Interpreter MyInter;
-	QString filePath = "E:/desktop/DSL-Robot/testGrammar.dsl";
-	MyInter.AnalysisScript(filePath);
-
-	//MyInter.StepList()[0].behavior[0]->Execute();
-	MyInter.Start();
-	//MyInter.StepList()[0].Run();
-	//MyInter.Start();
+#ifdef _TEST_
+	QString path = "E:/desktop/DSL-Robot/script.dsl";
+	//"E:/desktop/DSL-Robot/testGrammar.dsl";
 #endif // !_TEST_
 
 #ifdef _TEST_NET_
 
 #endif // !_TEST_NET_
 
-	//VarList v1;
-	//v1.val.push_back(1);
-	//v1.word.push_back("FUCK");
-	//VarList V2 = v1;
-	//qDebug() << v1.val << V2.val;
-	//V2.val[0] = 100;
-	//qDebug() << v1.val << V2.val;
-	//SynTree.AnalysisScript("E:/desktop/DSL-Robot/testGrammar.dsl");
+#ifndef _TEST_
+	if (argc <= 1)
+		return -114514;
+	QString path = QString(argv[1]);
+#endif
+
+
 	QApplication a(argc, argv);
-	DSL_Robot_GUI w;
+	DSL_Robot_GUI w(path);
+	
 	//w.show();
 	return a.exec();
 }

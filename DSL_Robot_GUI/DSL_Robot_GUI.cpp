@@ -1,9 +1,13 @@
 #include "DSL_Robot_GUI.h"
 
-DSL_Robot_GUI::DSL_Robot_GUI(QWidget *parent)
+DSL_Robot_GUI::DSL_Robot_GUI(QString ScriptPath, QWidget *parent)
     : QMainWindow(parent)
 {
-	SynTree.AnalysisScript("E:/desktop/DSL-Robot/testGrammar.dsl");
+	if (!SynTree.AnalysisScript(ScriptPath))
+	{
+		qDebug() << "Error：找不到脚本文件";
+		exit(-1);
+	}
     ui.setupUi(this);
 	allClients = new QVector<QTcpSocket*>;
 	server = new TcpServerThr();
@@ -15,7 +19,6 @@ DSL_Robot_GUI::DSL_Robot_GUI(QWidget *parent)
 	int port = 7777;
 	if (server->listen(hostAdd, port))
 		qDebug() << "Server start up" << hostAdd;
-
 }
 
 DSL_Robot_GUI::~DSL_Robot_GUI()

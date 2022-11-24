@@ -26,9 +26,9 @@ bool Interpreter::AnalysisScript(QString filePath)
 		}
 		if (key == "Set")
 		{
-			QString name = buffer.first().trimmed();
-			buffer.removeFirst();
 			QString type = buffer.first().trimmed();
+			buffer.removeFirst();
+			QString name = buffer.first().trimmed();
 			buffer.removeFirst();
 			if (type == "Var")
 			{
@@ -114,6 +114,7 @@ bool Interpreter::GenerateStep(Step& step_to_create, QTextStream& qstream)
 			QRegularExpression exp;
 			exp.setPattern("[/+/-/*//]");
 			QString express = qstream.readLine();
+			qDebug() << express;
 			int cur_pos = 0 , pre_pos = 0;
 			cur_pos = express.indexOf(":");
 			buffer << express.left(cur_pos).trimmed();
@@ -125,7 +126,8 @@ bool Interpreter::GenerateStep(Step& step_to_create, QTextStream& qstream)
 				pre_pos = cur_pos + 1;
 				cur_pos = express.indexOf(exp, pre_pos);
 			}
-			buffer << express.last(express.size() - pre_pos);
+			buffer << express.last(express.size() - pre_pos).trimmed();
+			qDebug() << buffer;
 			ModifyProcess(step_to_create, buffer);
 		}
 		else if (key == "Exit")
@@ -195,11 +197,7 @@ bool Interpreter::ListenProcess(Step& step_to_modify, QStringList& buffer)
 		return false;
 	QString token = buffer.first().trimmed();
 	buffer.removeFirst();
-	int delim_pos = token.indexOf(',');
-	QString start = token.left(delim_pos).trimmed();
-	QString end = token.mid(delim_pos + 1, -1).trimmed();
-	new_listen->startTime = start.toInt();
-	new_listen->endTime = end.toInt();
+	new_listen->waitTime = token.toInt();
 	step_to_modify.behavior.push_back(new_listen);
 	return true;
 }
@@ -224,15 +222,15 @@ bool Interpreter::ExitProcess(Step& step_to_modify, QStringList& buffer)
 bool Interpreter::ModifyProcess(Step& step_to_modify, QStringList& buffer)
 {
 	Modify* new_modify = new Modify;
-	new_modify->toModify = buffer.first();
+	new_modify->toModify = buffer.first().trimmed();
 	buffer.removeFirst();
 	int is_val = 1;
 	for (auto & token : buffer)
 	{
 		if (is_val)
-			new_modify->varQue.enqueue(token);
+			new_modify->varQue.push_back(token);
 		else
-			new_modify->opQue.enqueue(token);
+			new_modify->opQue.push_back(token);
 		is_val = 1 - is_val;
 	}
 	step_to_modify.behavior.push_back(new_modify);

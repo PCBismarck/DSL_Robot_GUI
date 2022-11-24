@@ -2,7 +2,7 @@
 
 int Speak::Execute(QString &OBuffer, VarList& var, QTcpSocket* client)
 {
-	QThread::sleep(0.5);
+	//QThread::sleep(0.5);
 	qDebug() << "Speak Execute!";
 	QString token;
 	for (auto& word : words)
@@ -28,16 +28,19 @@ int Speak::Execute(QString &OBuffer, VarList& var, QTcpSocket* client)
 	}
 	client->write(token.toLocal8Bit());
 	client->waitForBytesWritten();
-	QThread::sleep(0.5);
-	qDebug() << token;
+	//QThread::sleep(0.5);
+	qDebug()  << "Send:" << token;
 	return NORM;
 }
 
 int Branch::Execute(QString &OBuffer, VarList& var, QTcpSocket* client)
 {
 	qDebug() << "Branch Execute!";
+	if (OBuffer == "\n\t\n@Silence")
+		return NORM;
 	QStringList keys = jump.keys();
 	QStringList varKeys = var.noteTable.keys();
+	qDebug() << keys << varKeys;
 	if (!varKeys.contains("Heard"))
 		return EROR;
 	QPair<int, int> heard_info = var.noteTable["Heard"];
@@ -61,11 +64,15 @@ int Listen::Execute(QString &OBuffer, VarList& var, QTcpSocket* client)
 	QString heard;
 	QStringList keys = var.noteTable.keys();
 	//监听是否有输入
-	client->waitForReadyRead(startTime*1000);
+	client->waitForReadyRead(waitTime*1000);
 	heard = QString::fromLocal8Bit(client->readAll());
-	int isSilence = 0;
+	qDebug() << "Listen: " << heard;
+	OBuffer.clear();
 	if (heard.isEmpty())
-		isSilence = 1;
+	{
+		OBuffer = "\n\t\n@Silence";
+		return HEAR;
+	}
 	//Heard已经存在
 	if (keys.contains("Heard"))
 	{
@@ -133,6 +140,8 @@ int Exit::Execute(QString &OBuffer, VarList& var, QTcpSocket* client)
 
 int Silence::Execute(QString &OBuffer, VarList& var, QTcpSocket* client)
 {
+	if (OBuffer == "\0\n@Silence")
+		return NORM;
 	OBuffer.clear();
 	qDebug() << "Silence Execute!";
 	OBuffer = jumpTo;
@@ -149,30 +158,41 @@ int Default::Execute(QString &OBuffer, VarList& var, QTcpSocket* client)
 
 int Modify::Execute(QString &OBuffer, VarList& var, QTcpSocket* client)
 {
+	qDebug() << var.noteTable << var.val << var.word << opQue << varQue << toModify;
+	if (toModify.first(1) != "$")
+		return EROR;
 	QPair<int, int> varInfo = var.noteTable[toModify.mid(1, -1)];
 	int type = varInfo.first;
 	int pos = varInfo.second;
+	int cur_var_pos = 0, cur_op_pos = 0;
 	if (type == VAR)
 	{
 		int cur_val;
-		QPair<int, int> v_info = var.noteTable[varQue.dequeue()];
+		if (varQue.size() == cur_var_pos)
+			return EROR;
+		QString key = varQue[cur_var_pos++];
+		if (key.first(1) == "$")
+			key = key.mid(1, -1);
+		QPair<int, int> v_info = var.noteTable[key];
 		if (v_info.first != VAR)
 			return EROR;
 		cur_val = var.val[v_info.second];
-		while (!opQue.isEmpty())
+		while (opQue.size() != cur_op_pos)
 		{
 			int temp;
-			QString key = varQue.dequeue();
+			if (varQue.size() == cur_var_pos)
+				return EROR;
+			key = varQue[cur_var_pos++];
 			if (key.first(1) == "$")
 			{
-				QPair<int, int> temp_info = var.noteTable[varQue.dequeue()];
+				QPair<int, int> temp_info = var.noteTable[key.mid(1, -1)];
 				if (v_info.first != VAR)
 					return EROR;
 				temp = var.val[temp_info.second];
 			}
 			else
 				temp = key.toInt();
-			QString op = opQue.dequeue();
+			QString op = opQue[cur_op_pos++];
 			if (op == "+")
 				cur_val += temp;
 			else if (op == "-")
@@ -189,29 +209,37 @@ int Modify::Execute(QString &OBuffer, VarList& var, QTcpSocket* client)
 	else if (type == WORD)
 	{
 		QString cur_str;
-		QPair<int, int> v_info = var.noteTable[varQue.dequeue()];
+		if (varQue.size() == cur_var_pos)
+			return EROR;
+		QString key = varQue[cur_var_pos++];
+		if (key.first(1) == "$")
+			key = key.mid(1, -1);
+		QPair<int, int> v_info = var.noteTable[key];
 		if (v_info.first != WORD)
 			return EROR;
 		cur_str = var.word[v_info.second];
-		while (!opQue.isEmpty())
+		while (opQue.size() != cur_op_pos)
 		{
 			QString temp;
-			QString key = varQue.dequeue();
+			if (varQue.size() == cur_var_pos)
+				return EROR;
+			key = varQue[cur_var_pos++];
 			if (key.first(1) == "$")
 			{
-				QPair<int, int> temp_info = var.noteTable[varQue.dequeue()];
+				QPair<int, int> temp_info = var.noteTable[key.mid(1, -1)];
 				if (v_info.first != WORD)
 					return EROR;
 				temp = var.word[temp_info.second];
 			}
 			else
 				temp = key;
-			QString op = opQue.dequeue();
+			QString op = opQue[cur_op_pos++];
 			if (op == "+")
 				cur_str += temp;
 			else
 				return EROR;
 		}
+		var.word[pos] = cur_str;
 	}
 	qDebug() << "Modify Execute!";
 	return NORM;
@@ -243,7 +271,9 @@ int Step::Run(QString& SOBuffer, VarList& var, QTcpSocket* client)
 		default:
 			break;
 		}
-		qDebug() << name << "Step Over!";
+		qDebug() << name << ": Next action!";
+		if (client->state() == QTcpSocket::UnconnectedState)
+			return EROR;
 	}
 	return NORM;
 }

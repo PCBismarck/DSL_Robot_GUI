@@ -69,8 +69,7 @@ class Listen : public Action
 public:
 	int Execute(QString &OBuffer, VarList& var, QTcpSocket* client);
 public:
-	int startTime;
-	int endTime;
+	int waitTime;
 	int heardType;
 };
 
@@ -102,8 +101,8 @@ public:
 	int Execute(QString &OBuffer, VarList& var, QTcpSocket* client);
 public:
 	QString toModify;
-	QQueue<QString> varQue;
-	QQueue<QString> opQue;
+	QVector<QString> varQue;
+	QVector<QString> opQue;
 };
 
 class Step

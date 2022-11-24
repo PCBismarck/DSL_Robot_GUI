@@ -30,9 +30,8 @@ class DSL_Robot_GUI : public QMainWindow
     Q_OBJECT
 
 public:
-    DSL_Robot_GUI(QWidget *parent = nullptr);
+    DSL_Robot_GUI(QString ScriptPath, QWidget *parent = nullptr);
     ~DSL_Robot_GUI();
-
 private slots:
     //void on_sendButton_clicked();
     //void handleNewConnection();
@@ -44,6 +43,5 @@ private:
     TcpServerThr* server;
     QVector<QTcpSocket*>* allClients;
     Interpreter SynTree;
-    QStringList IBuffer;
 };
 
