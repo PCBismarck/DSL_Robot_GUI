@@ -4,7 +4,7 @@
 ### 服务端
 DSL_Robot_Server.sln是VS解决方案，DSL_Robot_GUI文件夹下是服务端的项目文件
 编译生成后在命令行输入 
-```DSL_Robot_Server scriptPath
+```DSL_Robot_Server scriptPath```
 运行服务器
 ### 客户端
 Robot_fore_end_GUI文件夹里面是客户端的Qt工程文件，用Qt打开CmakeLists.txt文件可以打开工程文件
