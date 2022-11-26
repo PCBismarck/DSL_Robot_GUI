@@ -24,24 +24,27 @@ signals:
 
 };
 
-
-class DSL_Robot_GUI : public QMainWindow
+//服务端的主要入口类，在其他线程中创建Robot回复客户
+class DSL_Robot_Server : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    DSL_Robot_GUI(QString ScriptPath, QWidget *parent = nullptr);
-    ~DSL_Robot_GUI();
+    //在构造该类时需要给出一个脚本文件地址，在创建该类时同时创建对应脚本文件的Interpreter类
+    DSL_Robot_Server(QString ScriptPath, QWidget *parent = nullptr);
+    ~DSL_Robot_Server();
 private slots:
     //void on_sendButton_clicked();
     //void handleNewConnection();
     //void recv_msg();
+    //接收到连接请求后开启一个新线程，并设置Robot
     void start_new_thread(qintptr socketDescriptor);
 
 private:
     Ui::DSL_Robot_GUIClass ui;
+    //Tcp Sever类
     TcpServerThr* server;
-    QVector<QTcpSocket*>* allClients;
+    //Interpreter类，解析脚本文件，生成状态机
     Interpreter SynTree;
 };
 

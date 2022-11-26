@@ -1,6 +1,7 @@
-#include "DSL_Robot_GUI.h"
+#include "DSL_Robot_Server.h"
+#include <iostream>
 
-DSL_Robot_GUI::DSL_Robot_GUI(QString ScriptPath, QWidget *parent)
+DSL_Robot_Server::DSL_Robot_Server(QString ScriptPath, QWidget *parent)
     : QMainWindow(parent)
 {
 	if (!SynTree.AnalysisScript(ScriptPath))
@@ -9,22 +10,21 @@ DSL_Robot_GUI::DSL_Robot_GUI(QString ScriptPath, QWidget *parent)
 		exit(-1);
 	}
     ui.setupUi(this);
-	allClients = new QVector<QTcpSocket*>;
 	server = new TcpServerThr();
-	server->setMaxPendingConnections(10);
-	connect(server, &TcpServerThr::signalNewConnection, this, &DSL_Robot_GUI::start_new_thread,
+	server->setMaxPendingConnections(1000);
+	connect(server, &TcpServerThr::signalNewConnection, this, &DSL_Robot_Server::start_new_thread,
 		Qt::QueuedConnection);
 	QHostAddress hostAdd;
 	hostAdd.setAddress("127.0.0.1");
 	int port = 7777;
 	if (server->listen(hostAdd, port))
-		qDebug() << "Server start up" << hostAdd;
+		std::cout << "Server start up" << hostAdd.toString().toStdString();
 }
 
-DSL_Robot_GUI::~DSL_Robot_GUI()
+DSL_Robot_Server::~DSL_Robot_Server()
 {}
 
-void DSL_Robot_GUI::start_new_thread(qintptr socketDescriptor)
+void DSL_Robot_Server::start_new_thread(qintptr socketDescriptor)
 {
 	qDebug() << QThread::currentThreadId();
 	qDebug() << "start thread" << socketDescriptor;

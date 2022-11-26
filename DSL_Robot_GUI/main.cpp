@@ -1,4 +1,4 @@
-#include "DSL_Robot_GUI.h"
+#include "DSL_Robot_Server.h"
 #include <QtWidgets/QApplication>
 #include "Interpreter.h"
 #include "Action.h"
@@ -11,7 +11,7 @@
 
 using namespace std;
 
-//#define _TEST_
+#define _TEST_
 //#define _TEST_NET_
 
 int main(int argc, char *argv[])
@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
 
 
 	QApplication a(argc, argv);
-	DSL_Robot_GUI w(path);
+	DSL_Robot_Server w(path);
 	
 	//w.show();
 	return a.exec();

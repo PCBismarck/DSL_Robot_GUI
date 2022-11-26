@@ -29,10 +29,10 @@
     <QtUic Include="DSL_Robot_GUI.ui">
       <Filter>Form Files</Filter>
     </QtUic>
-    <QtMoc Include="DSL_Robot_GUI.h">
+    <QtMoc Include="DSL_Robot_Server.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <ClCompile Include="DSL_Robot_GUI.cpp">
+    <ClCompile Include="DSL_Robot_Server.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -2,6 +2,17 @@
 #include "Action.h"
 
 
+Interpreter::~Interpreter()
+{
+	for (auto & iter : stepList)
+	{
+		for (auto & it : iter.behavior)
+		{
+			delete(it);
+		}
+	}
+}
+
 bool Interpreter::AnalysisScript(QString filePath)
 {
 	QFile file(filePath);

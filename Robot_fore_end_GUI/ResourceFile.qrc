@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>img/duolaLeft.gif</file>
+        <file>img/duolaRight.gif</file>
+    </qresource>
+</RCC>
